@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/assets/fonts/GeistMono.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/assets/fonts/Satoshi.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+    --background: 0.08 0.012 270;
+    --foreground: 0.94 0.005 270;
+    --card: 0.11 0.015 265;
+    --card-foreground: 0.94 0.005 270;
+    --popover: 0.13 0.015 265;
+    --popover-foreground: 0.94 0.005 270;
+    --primary: 0.72 0.17 175;
+    --primary-foreground: 0.08 0.012 270;
+    --secondary: 0.15 0.018 265;
+    --secondary-foreground: 0.94 0.005 270;
+    --muted: 0.15 0.012 265;
+    --muted-foreground: 0.5 0.015 265;
+    --accent: 0.18 0.02 265;
+    --accent-foreground: 0.94 0.005 270;
+    --destructive: 0.6 0.22 25;
+    --destructive-foreground: 0.94 0.005 270;
+    --border: 0.22 0.02 265;
+    --input: 0.18 0.018 265;
+    --ring: 0.72 0.17 175;
+    --chart-1: 0.72 0.17 175;
+    --chart-2: 0.6 0.22 25;
+    --chart-3: 0.78 0.17 75;
+    --chart-4: 0.65 0.18 210;
+    --chart-5: 0.7 0.19 305;
+    --sidebar: 0.1 0.014 265;
+    --sidebar-foreground: 0.94 0.005 270;
+    --sidebar-primary: 0.72 0.17 175;
+    --sidebar-primary-foreground: 0.08 0.012 270;
+    --sidebar-accent: 0.15 0.018 265;
+    --sidebar-accent-foreground: 0.94 0.005 270;
+    --sidebar-border: 0.22 0.02 265;
+    --sidebar-ring: 0.72 0.17 175;
+    /* Trading-specific tokens */
+    --trade-green: 0.72 0.17 175;
+    --trade-red: 0.6 0.22 25;
+    --trade-amber: 0.78 0.17 75;
+    --trade-blue: 0.65 0.18 210;
+    --trade-purple: 0.65 0.19 305;
+    --neon-glow-green: 0 0 16px oklch(0.72 0.17 175 / 0.5);
+    --neon-glow-red: 0 0 16px oklch(0.6 0.22 25 / 0.5);
+    --neon-glow-amber: 0 0 16px oklch(0.78 0.17 75 / 0.5);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Satoshi", "General Sans", system-ui, sans-serif;
+  }
+
+  .font-mono {
+    font-family: "Geist Mono", "JetBrains Mono", monospace;
+  }
+}
+
+/* Grid texture background */
+.grid-bg {
+  background-image: linear-gradient(
+      oklch(0.22 0.02 265 / 0.3) 1px,
+      transparent 1px
+    ), linear-gradient(90deg, oklch(0.22 0.02 265 / 0.3) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.trade-green {
+  color: oklch(var(--trade-green));
+}
+.trade-red {
+  color: oklch(var(--trade-red));
+}
+.trade-amber {
+  color: oklch(var(--trade-amber));
+}
+.trade-blue {
+  color: oklch(var(--trade-blue));
+}
+
+.bg-trade-green {
+  background-color: oklch(var(--trade-green));
+}
+.bg-trade-red {
+  background-color: oklch(var(--trade-red));
+}
+.bg-trade-amber {
+  background-color: oklch(var(--trade-amber));
+}
+
+.border-trade-green {
+  border-color: oklch(var(--trade-green));
+}
+.border-trade-red {
+  border-color: oklch(var(--trade-red));
+}
+.border-trade-amber {
+  border-color: oklch(var(--trade-amber));
+}
+
+.glow-green {
+  box-shadow: var(--neon-glow-green);
+}
+.glow-red {
+  box-shadow: var(--neon-glow-red);
+}
+.glow-amber {
+  box-shadow: var(--neon-glow-amber);
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.22 0.02 265) transparent;
+}
+
+@keyframes pulse-slow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
