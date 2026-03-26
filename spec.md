@@ -1,47 +1,32 @@
 # TradeSignal AI
 
 ## Current State
-New project. Empty workspace.
+New project build (no existing src directory).
 
 ## Requested Changes (Diff)
 
 ### Add
-- Trading signal analysis app with AI-powered chart analysis
-- OpenAI GPT-4 integration via HTTP outcalls for chart/market analysis
-- User authentication (authorization component)
-- Dashboard with market symbol input and AI analysis panel
-- Trading signals display: BUY/SELL/HOLD with confidence levels, entry/exit price targets, stop loss
-- AI chat interface where users can ask follow-up questions about analysis
-- Multiple timeframe selection (1H, 4H, 1D, 1W)
-- Indicator inputs: price, volume, RSI, MACD, moving averages (user inputs these)
-- Signal history log
-- API key management (users provide their own OpenAI API key stored in their session)
+- TradingView widget with any symbol and any time window support
+- Technical indicators panel: RSI, MACD, Bollinger Bands, EMA, SMA, Stochastic, ATR, Volume
+- AI-powered signal analysis using top 5 AI models (GPT-4o, Claude 3.5, Gemini 1.5 Pro, Grok-2, Llama 3.1)
+- Shop entry indicators: visual entry zones overlaid on chart
+- Trade signals panel: BUY/SELL/HOLD with Entry Price, Target 1, Target 2, Stop Loss
+- Indicator summary panel showing current values and signal direction for each indicator
+- Settings page for API key management per AI provider
+- Symbol search input supporting stocks, crypto, forex, commodities
+- Time window selector: 1m, 5m, 15m, 1h, 4h, 1D, 1W, 1M
+- Auto-analysis trigger on symbol/timeframe/AI model change
+- Internet Identity login
 
 ### Modify
-- N/A
+N/A
 
 ### Remove
-- N/A
+N/A
 
 ## Implementation Plan
-1. Backend (Motoko):
-   - HTTP outcalls to OpenAI GPT-4 API for trading analysis
-   - Endpoint: analyzeChart(symbol, timeframe, priceData, indicators, apiKey) -> SignalResult
-   - Endpoint: chatWithAI(messages, apiKey) -> AIResponse
-   - SignalResult type: { signal, confidence, entryPrice, targetPrice, stopLoss, reasoning, timestamp }
-   - Store signal history per user (last 20 signals)
-   - getSignalHistory() -> [SignalResult]
-   - Authorization for user management
-
-2. Frontend (React):
-   - Dark trading theme
-   - Landing/login page
-   - Main dashboard:
-     - Symbol input + timeframe selector
-     - Market data input form (OHLCV + indicators)
-     - "Analyze" button triggering AI analysis
-     - Signal card: BUY/SELL/HOLD badge, confidence meter, entry/target/stop
-     - AI reasoning text
-     - Chat panel for follow-up questions
-     - Signal history sidebar
-   - API key settings modal
+1. Backend: store user API keys per provider, serve indicator data via HTTP outcalls to price APIs
+2. Frontend: TradingView chart widget, indicators sidebar, AI signal panel, settings modal
+3. Indicators computed client-side from OHLCV data fetched via backend HTTP outcalls
+4. AI analysis sends indicator snapshot + price context to selected AI model
+5. Shop entry points displayed as horizontal lines on chart based on AI signal levels

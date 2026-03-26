@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useActor } from "./useActor";
 
+// Legacy single-key hooks (backwards compat)
 export function useGetApiKey() {
   const { actor, isFetching } = useActor();
   return useQuery<string>({
@@ -23,6 +24,35 @@ export function useSaveApiKey() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["apiKey"] });
+    },
+  });
+}
+
+// Per-provider key hooks
+export function useGetProviderApiKey(provider: string) {
+  const { actor, isFetching } = useActor();
+  return useQuery<string>({
+    queryKey: ["providerApiKey", provider],
+    queryFn: async () => {
+      if (!actor) return "";
+      return actor.getProviderApiKey(provider);
+    },
+    enabled: !!actor && !isFetching && !!provider,
+  });
+}
+
+export function useSaveProviderApiKey() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { provider: string; apiKey: string }) => {
+      if (!actor) throw new Error("No actor");
+      return actor.saveProviderApiKey(params.provider, params.apiKey);
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["providerApiKey", variables.provider],
+      });
     },
   });
 }
@@ -60,6 +90,7 @@ export function useAnalyzeChart() {
       symbol: string;
       timeframe: string;
       marketData: string;
+      provider: string;
       apiKey: string;
     }) => {
       if (!actor) throw new Error("No actor");
@@ -67,6 +98,7 @@ export function useAnalyzeChart() {
         params.symbol,
         params.timeframe,
         params.marketData,
+        params.provider,
         params.apiKey,
       );
     },
@@ -76,9 +108,13 @@ export function useAnalyzeChart() {
 export function useChatWithAI() {
   const { actor } = useActor();
   return useMutation({
-    mutationFn: async (params: { messages: string; apiKey: string }) => {
+    mutationFn: async (params: {
+      messages: string;
+      provider: string;
+      apiKey: string;
+    }) => {
       if (!actor) throw new Error("No actor");
-      return actor.chatWithAI(params.messages, params.apiKey);
+      return actor.chatWithAI(params.messages, params.provider, params.apiKey);
     },
   });
 }

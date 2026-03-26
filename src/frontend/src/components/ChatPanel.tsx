@@ -16,6 +16,7 @@ interface Message {
 
 interface Props {
   apiKey: string;
+  selectedModel: string;
   lastSignal: SignalResult | null;
   symbol: string;
 }
@@ -27,7 +28,12 @@ const QUICK_QUESTIONS = [
   "How strong is this signal?",
 ];
 
-export default function ChatPanel({ apiKey, lastSignal, symbol }: Props) {
+export default function ChatPanel({
+  apiKey,
+  selectedModel,
+  lastSignal,
+  symbol,
+}: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
@@ -55,7 +61,7 @@ Help the trader understand this analysis and answer questions about risk, entry 
   const sendMessage = async (content: string) => {
     if (!content.trim() || isPending) return;
     if (!apiKey) {
-      toast.error("Please set your API key in Settings");
+      toast.error("Please set an API key in Settings");
       return;
     }
 
@@ -76,6 +82,7 @@ Help the trader understand this analysis and answer questions about risk, entry 
     try {
       const response = await mutateAsync({
         messages: JSON.stringify(payload),
+        provider: selectedModel,
         apiKey,
       });
       setMessages((prev) => [
@@ -110,13 +117,13 @@ Help the trader understand this analysis and answer questions about risk, entry 
           AI Trading Chat
           {lastSignal && (
             <span className="text-xs text-muted-foreground ml-auto">
-              Context: {symbol} {lastSignal.signal}
+              {symbol} · {lastSignal.signal}
             </span>
           )}
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col gap-3 overflow-hidden min-h-0">
+      <CardContent className="flex-1 flex flex-col gap-3 overflow-hidden min-h-0 pb-3">
         {/* Messages */}
         <div className="flex-1 overflow-y-auto scrollbar-thin space-y-3 pr-1">
           {messages.length === 0 ? (
@@ -151,9 +158,7 @@ Help the trader understand this analysis and answer questions about risk, entry 
                   )}
                   <div
                     className={`rounded-xl px-3 py-2 text-xs max-w-[85%] leading-relaxed ${
-                      msg.role === "user"
-                        ? "text-background rounded-br-sm"
-                        : "text-foreground rounded-bl-sm"
+                      msg.role === "user" ? "rounded-br-sm" : "rounded-bl-sm"
                     }`}
                     style={
                       msg.role === "user"

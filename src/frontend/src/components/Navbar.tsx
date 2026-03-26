@@ -4,24 +4,19 @@ import { useQueryClient } from "@tanstack/react-query";
 import { LogOut, Settings, TrendingUp } from "lucide-react";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 
-const TIMEFRAMES = ["1H", "4H", "1D", "1W"];
-const SYMBOLS = ["BTC/USD", "ETH/USD", "SOL/USD", "AAPL", "TSLA", "EUR/USD"];
+interface ModelInfo {
+  id: string;
+  name: string;
+  provider: string;
+  color: string;
+}
 
 interface Props {
-  symbol: string;
-  setSymbol: (s: string) => void;
-  timeframe: string;
-  setTimeframe: (t: string) => void;
+  selectedModel: ModelInfo;
   onSettings: () => void;
 }
 
-export default function Navbar({
-  symbol,
-  setSymbol,
-  timeframe,
-  setTimeframe,
-  onSettings,
-}: Props) {
+export default function Navbar({ selectedModel, onSettings }: Props) {
   const { clear, identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
@@ -48,51 +43,33 @@ export default function Navbar({
         >
           <TrendingUp className="w-4 h-4 trade-green" />
         </div>
-        <span className="font-bold text-sm tracking-tight hidden sm:block">
+        <span className="font-bold text-sm tracking-tight">
           Trade<span className="trade-green">Signal</span> AI
         </span>
       </div>
 
-      {/* Symbol selector */}
-      <div className="flex gap-1 overflow-x-auto scrollbar-thin">
-        {SYMBOLS.map((s) => (
-          <button
-            type="button"
-            key={s}
-            data-ocid={`navbar.${s.replace("/", "").toLowerCase()}.button`}
-            onClick={() => setSymbol(s)}
-            className={`px-3 py-1 rounded-md text-xs font-mono font-medium whitespace-nowrap transition-colors ${
-              symbol === s
-                ? "text-background"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-            style={symbol === s ? { background: "oklch(0.72 0.17 175)" } : {}}
-          >
-            {s}
-          </button>
-        ))}
+      {/* Active AI model badge */}
+      <div
+        className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium"
+        data-ocid="navbar.active_model.badge"
+        style={{
+          background: `${selectedModel.color.replace(")", " / 0.12)")}`,
+          border: `1px solid ${selectedModel.color.replace(")", " / 0.35)")}`,
+          color: selectedModel.color,
+        }}
+      >
+        <span
+          className="w-1.5 h-1.5 rounded-full"
+          style={{ background: selectedModel.color }}
+        />
+        {selectedModel.name}
+        <span className="text-muted-foreground">·</span>
+        <span style={{ color: "oklch(0.65 0.01 270)" }}>
+          {selectedModel.provider}
+        </span>
       </div>
 
-      {/* Timeframe pills */}
-      <div className="flex gap-1 ml-auto">
-        {TIMEFRAMES.map((tf) => (
-          <button
-            type="button"
-            key={tf}
-            data-ocid={`navbar.${tf.toLowerCase()}.tab`}
-            onClick={() => setTimeframe(tf)}
-            className={`px-3 py-1 rounded-md text-xs font-mono font-semibold transition-colors ${
-              timeframe === tf
-                ? "bg-accent text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {tf}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 ml-auto">
         <Badge variant="outline" className="text-xs font-mono hidden md:flex">
           {shortPrincipal}
         </Badge>

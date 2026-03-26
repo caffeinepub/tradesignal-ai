@@ -13,6 +13,7 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const UserProfile = IDL.Record({ 'name' : IDL.Text });
 export const http_header = IDL.Record({
   'value' : IDL.Text,
   'name' : IDL.Text,
@@ -35,17 +36,26 @@ export const TransformationOutput = IDL.Record({
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'analyzeChart' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
       [IDL.Text],
       [],
     ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-  'chatWithAI' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
+  'chatWithAI' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Text], []),
   'getApiKey' : IDL.Func([], [IDL.Text], ['query']),
+  'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getProviderApiKey' : IDL.Func([IDL.Text], [IDL.Text], ['query']),
   'getSignalHistory' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
+  'getUserProfile' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Opt(UserProfile)],
+      ['query'],
+    ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'saveApiKey' : IDL.Func([IDL.Text], [], []),
+  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'saveProviderApiKey' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'saveSignal' : IDL.Func([IDL.Text], [], []),
   'transform' : IDL.Func(
       [TransformationInput],
@@ -62,6 +72,7 @@ export const idlFactory = ({ IDL }) => {
     'user' : IDL.Null,
     'guest' : IDL.Null,
   });
+  const UserProfile = IDL.Record({ 'name' : IDL.Text });
   const http_header = IDL.Record({ 'value' : IDL.Text, 'name' : IDL.Text });
   const http_request_result = IDL.Record({
     'status' : IDL.Nat,
@@ -81,17 +92,26 @@ export const idlFactory = ({ IDL }) => {
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'analyzeChart' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
         [IDL.Text],
         [],
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-    'chatWithAI' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
+    'chatWithAI' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Text], []),
     'getApiKey' : IDL.Func([], [IDL.Text], ['query']),
+    'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getProviderApiKey' : IDL.Func([IDL.Text], [IDL.Text], ['query']),
     'getSignalHistory' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
+    'getUserProfile' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(UserProfile)],
+        ['query'],
+      ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'saveApiKey' : IDL.Func([IDL.Text], [], []),
+    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'saveProviderApiKey' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'saveSignal' : IDL.Func([IDL.Text], [], []),
     'transform' : IDL.Func(
         [TransformationInput],

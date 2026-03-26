@@ -7,6 +7,9 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export interface UserProfile {
+    name: string;
+}
 export interface TransformationInput {
     context: Uint8Array;
     response: http_request_result;
@@ -31,14 +34,19 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
-    analyzeChart(symbol: string, timeframe: string, marketData: string, apiKey: string): Promise<string>;
+    analyzeChart(symbol: string, timeframe: string, marketData: string, provider: string, apiKey: string): Promise<string>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    chatWithAI(messages: string, apiKey: string): Promise<string>;
+    chatWithAI(messages: string, provider: string, apiKey: string): Promise<string>;
     getApiKey(): Promise<string>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getProviderApiKey(provider: string): Promise<string>;
     getSignalHistory(): Promise<Array<string>>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     saveApiKey(apiKey: string): Promise<void>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    saveProviderApiKey(provider: string, apiKey: string): Promise<void>;
     saveSignal(signalJson: string): Promise<void>;
     /**
      * / Callback function for HTTP transformation required by IC

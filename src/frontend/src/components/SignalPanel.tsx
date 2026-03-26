@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronDown, ChevronUp, Save, Zap } from "lucide-react";
+import { ChevronDown, ChevronUp, Save, Target, Zap } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -10,38 +10,43 @@ import { useSaveSignal } from "../hooks/useQueries";
 export interface SignalResult {
   signal: "BUY" | "SELL" | "HOLD";
   confidence: number;
-  entryPrice: number;
-  targetPrice: number;
+  entry?: number;
+  entryPrice?: number;
+  target1?: number;
+  target2?: number;
+  targetPrice?: number;
   stopLoss: number;
   reasoning: string;
+  indicatorConsensus?: string;
 }
 
 interface Props {
   result: SignalResult | null;
   symbol: string;
   timeframe: string;
+  isLoading?: boolean;
 }
 
 function CircularProgress({ value, color }: { value: number; color: string }) {
-  const r = 36;
+  const r = 32;
   const circ = 2 * Math.PI * r;
   const dash = (value / 100) * circ;
   return (
-    <svg width="90" height="90" className="-rotate-90" aria-hidden="true">
+    <svg width="80" height="80" className="-rotate-90" aria-hidden="true">
       <circle
-        cx="45"
-        cy="45"
+        cx="40"
+        cy="40"
         r={r}
         fill="none"
-        strokeWidth="6"
+        strokeWidth="5"
         stroke="oklch(0.22 0.02 265)"
       />
       <circle
-        cx="45"
-        cy="45"
+        cx="40"
+        cy="40"
         r={r}
         fill="none"
-        strokeWidth="6"
+        strokeWidth="5"
         stroke={color}
         strokeDasharray={`${dash} ${circ - dash}`}
         strokeLinecap="round"
@@ -51,23 +56,32 @@ function CircularProgress({ value, color }: { value: number; color: string }) {
   );
 }
 
-export default function SignalPanel({ result, symbol, timeframe }: Props) {
+const SIGNAL_CONFIG = {
+  BUY: {
+    color: "oklch(0.72 0.17 175)",
+    glow: "0 0 20px oklch(0.72 0.17 175 / 0.35)",
+    label: "BUY",
+  },
+  SELL: {
+    color: "oklch(0.6 0.22 25)",
+    glow: "0 0 20px oklch(0.6 0.22 25 / 0.35)",
+    label: "SELL",
+  },
+  HOLD: {
+    color: "oklch(0.78 0.17 75)",
+    glow: "0 0 20px oklch(0.78 0.17 75 / 0.35)",
+    label: "HOLD",
+  },
+};
+
+export default function SignalPanel({
+  result,
+  symbol,
+  timeframe,
+  isLoading,
+}: Props) {
   const [expanded, setExpanded] = useState(false);
   const { mutateAsync: saveSignal, isPending: isSaving } = useSaveSignal();
-
-  const signalColors = {
-    BUY: {
-      color: "oklch(0.72 0.17 175)",
-      css: "trade-green",
-      glow: "glow-green",
-    },
-    SELL: { color: "oklch(0.6 0.22 25)", css: "trade-red", glow: "glow-red" },
-    HOLD: {
-      color: "oklch(0.78 0.17 75)",
-      css: "trade-amber",
-      glow: "glow-amber",
-    },
-  };
 
   const handleSave = async () => {
     if (!result) return;
@@ -81,175 +95,267 @@ export default function SignalPanel({ result, symbol, timeframe }: Props) {
     }
   };
 
-  const rr = result
-    ? Math.abs(result.targetPrice - result.entryPrice) /
-      Math.abs(result.entryPrice - result.stopLoss)
-    : null;
+  const entryVal = result ? (result.entry ?? result.entryPrice ?? 0) : 0;
+  const t1Val = result ? (result.target1 ?? result.targetPrice ?? 0) : 0;
+  const t2Val = result ? (result.target2 ?? (t1Val ? t1Val * 1.02 : 0)) : 0;
+  const slVal = result ? result.stopLoss : 0;
+
+  const rr =
+    entryVal && slVal && t1Val
+      ? Math.abs(t1Val - entryVal) / Math.abs(entryVal - slVal)
+      : null;
 
   return (
     <Card
       className="flex flex-col h-full"
       style={{
-        background: "oklch(0.11 0.015 265)",
+        background: "oklch(0.09 0.013 268)",
         border: "1px solid oklch(0.22 0.02 265)",
       }}
       data-ocid="signal.panel"
     >
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <Zap className="w-4 h-4 trade-green" />
-          Signal Result
+      <CardHeader className="pb-2 pt-3 px-3">
+        <CardTitle className="text-xs flex items-center gap-2">
+          <Target
+            className="w-3.5 h-3.5"
+            style={{ color: "oklch(0.72 0.17 175)" }}
+          />
+          <span className="uppercase tracking-wider text-muted-foreground">
+            AI Signal
+          </span>
+          {result && (
+            <span className="ml-auto text-xs font-mono text-muted-foreground">
+              {symbol} · {timeframe}
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 overflow-y-auto scrollbar-thin">
-        {!result ? (
+
+      <CardContent className="flex-1 overflow-y-auto scrollbar-thin px-3 pb-3 pt-0">
+        {isLoading ? (
           <div
-            data-ocid="signal.empty_state"
-            className="flex flex-col items-center justify-center h-40 text-center"
+            data-ocid="signal.loading_state"
+            className="flex flex-col items-center justify-center h-48 gap-3"
           >
             <div
-              className="w-16 h-16 rounded-full flex items-center justify-center mb-3"
-              style={{ background: "oklch(0.15 0.018 265)" }}
-            >
-              <Zap className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <p className="text-muted-foreground text-sm">
-              Enter market data and click
-              <br />
-              "Analyze with AI" to get signals
+              className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin"
+              style={{
+                borderColor: "oklch(0.72 0.17 175)",
+                borderTopColor: "transparent",
+              }}
+            />
+            <p className="text-xs text-muted-foreground animate-pulse-slow">
+              AI analyzing market data...
             </p>
+          </div>
+        ) : !result ? (
+          <div
+            data-ocid="signal.empty_state"
+            className="flex flex-col items-center justify-center h-48 text-center gap-3"
+          >
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center"
+              style={{
+                background: "oklch(0.15 0.018 265)",
+                border: "1px solid oklch(0.22 0.02 265)",
+              }}
+            >
+              <Zap className="w-7 h-7 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="text-sm text-foreground font-medium mb-1">
+                No signal yet
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Click Analyze to get AI trading signals
+              </p>
+            </div>
           </div>
         ) : (
           <AnimatePresence mode="wait">
             <motion.div
               key={result.signal + result.confidence}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="space-y-4"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-3"
             >
-              {/* Signal badge + confidence */}
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
+              {/* Big signal badge */}
+              <div
+                className="rounded-xl p-4 flex items-center justify-between"
+                style={{
+                  background: `${SIGNAL_CONFIG[result.signal].color.replace(")", " / 0.08)")}`,
+                  border: `1px solid ${SIGNAL_CONFIG[result.signal].color.replace(")", " / 0.3)")}`,
+                  boxShadow: SIGNAL_CONFIG[result.signal].glow,
+                }}
+              >
+                <div>
                   <Badge
                     data-ocid="signal.type.badge"
-                    className={`text-2xl font-bold px-6 py-3 rounded-xl ${signalColors[result.signal].glow}`}
+                    className="text-3xl font-extrabold px-5 py-2 rounded-xl mb-1"
                     style={{
-                      background: `${signalColors[result.signal].color}22`,
-                      color: signalColors[result.signal].color,
-                      border: `1px solid ${signalColors[result.signal].color}66`,
+                      background: `${SIGNAL_CONFIG[result.signal].color.replace(")", " / 0.15)")}`,
+                      color: SIGNAL_CONFIG[result.signal].color,
+                      border: `1px solid ${SIGNAL_CONFIG[result.signal].color.replace(")", " / 0.5)")}`,
                     }}
                   >
                     {result.signal}
                   </Badge>
-                  <p className="text-xs text-muted-foreground pl-1">
+                  <p className="text-xs text-muted-foreground pl-1 mt-1">
                     {symbol} · {timeframe}
                   </p>
                 </div>
                 <div className="relative flex items-center justify-center">
                   <CircularProgress
                     value={result.confidence}
-                    color={signalColors[result.signal].color}
+                    color={SIGNAL_CONFIG[result.signal].color}
                   />
                   <div className="absolute text-center">
                     <p
-                      className="text-lg font-bold font-mono"
-                      style={{ color: signalColors[result.signal].color }}
+                      className="text-sm font-bold font-mono"
+                      style={{ color: SIGNAL_CONFIG[result.signal].color }}
                     >
                       {result.confidence}%
                     </p>
-                    <p className="text-xs text-muted-foreground">conf.</p>
+                    <p
+                      className="text-xs text-muted-foreground"
+                      style={{ fontSize: "9px" }}
+                    >
+                      CONF
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Price cards */}
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  {
-                    label: "Entry",
-                    value: result.entryPrice,
-                    color: "oklch(0.65 0.18 210)",
-                  },
-                  {
-                    label: "Target",
-                    value: result.targetPrice,
-                    color: "oklch(0.72 0.17 175)",
-                  },
-                  {
-                    label: "Stop Loss",
-                    value: result.stopLoss,
-                    color: "oklch(0.6 0.22 25)",
-                  },
-                ].map((item) => (
-                  <div
-                    key={item.label}
-                    className="rounded-lg p-3 text-center"
-                    style={{
-                      background: "oklch(0.15 0.018 265)",
-                      border: `1px solid ${item.color}33`,
-                    }}
-                  >
-                    <p className="text-xs text-muted-foreground mb-1">
-                      {item.label}
+              {/* Entry Zone (Shop Entry) */}
+              <div
+                className="rounded-lg p-3"
+                style={{
+                  background: "oklch(0.13 0.015 265)",
+                  border: "1px solid oklch(0.65 0.18 210 / 0.4)",
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-0.5">
+                      Shop Entry / Entry Zone
                     </p>
                     <p
-                      className="text-sm font-mono font-bold"
-                      style={{ color: item.color }}
+                      className="text-lg font-mono font-bold"
+                      style={{ color: "oklch(0.65 0.18 210)" }}
                     >
-                      {item.value.toLocaleString(undefined, {
+                      {entryVal.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 4,
                       })}
                     </p>
                   </div>
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center"
+                    style={{ background: "oklch(0.65 0.18 210 / 0.15)" }}
+                  >
+                    <Target
+                      className="w-4 h-4"
+                      style={{ color: "oklch(0.65 0.18 210)" }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Targets + Stop Loss */}
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  {
+                    label: "Target 1",
+                    value: t1Val,
+                    color: "oklch(0.72 0.17 175)",
+                  },
+                  {
+                    label: "Target 2",
+                    value: t2Val,
+                    color: "oklch(0.68 0.18 145)",
+                  },
+                  {
+                    label: "Stop Loss",
+                    value: slVal,
+                    color: "oklch(0.6 0.22 25)",
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-lg p-2.5 text-center"
+                    style={{
+                      background: "oklch(0.13 0.015 265)",
+                      border: `1px solid ${item.color.replace(")", " / 0.3)")}`,
+                    }}
+                  >
+                    <p
+                      className="text-xs text-muted-foreground mb-1"
+                      style={{ fontSize: "10px" }}
+                    >
+                      {item.label}
+                    </p>
+                    <p
+                      className="text-xs font-mono font-bold"
+                      style={{ color: item.color }}
+                    >
+                      {item.value
+                        ? item.value.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 4,
+                          })
+                        : "—"}
+                    </p>
+                  </div>
                 ))}
               </div>
 
-              {/* R/R ratio */}
+              {/* R/R */}
               {rr !== null && !Number.isNaN(rr) && Number.isFinite(rr) && (
                 <div
-                  className="rounded-lg p-3 flex items-center justify-between"
+                  className="rounded-lg p-2.5 flex items-center justify-between"
                   style={{
-                    background: "oklch(0.15 0.018 265)",
+                    background: "oklch(0.13 0.015 265)",
                     border: "1px solid oklch(0.22 0.02 265)",
                   }}
                 >
                   <span className="text-xs text-muted-foreground">
-                    Risk / Reward Ratio
+                    Risk / Reward
                   </span>
                   <span
-                    className={`text-sm font-mono font-bold ${
-                      rr >= 2
-                        ? "trade-green"
-                        : rr >= 1.5
-                          ? "trade-amber"
-                          : "trade-red"
-                    }`}
+                    className="text-sm font-mono font-bold"
+                    style={{
+                      color:
+                        rr >= 2
+                          ? "oklch(0.72 0.17 175)"
+                          : rr >= 1.5
+                            ? "oklch(0.78 0.17 75)"
+                            : "oklch(0.6 0.22 25)",
+                    }}
                   >
                     1 : {rr.toFixed(2)}
                   </span>
                 </div>
               )}
 
-              {/* Reasoning */}
+              {/* AI Reasoning */}
               <div
                 className="rounded-lg overflow-hidden"
                 style={{
-                  background: "oklch(0.15 0.018 265)",
+                  background: "oklch(0.13 0.015 265)",
                   border: "1px solid oklch(0.22 0.02 265)",
                 }}
               >
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between p-3 text-sm font-medium hover:bg-accent/30 transition-colors"
+                  className="w-full flex items-center justify-between p-2.5 text-xs font-medium hover:bg-accent/30 transition-colors"
                   onClick={() => setExpanded(!expanded)}
                   data-ocid="signal.reasoning.toggle"
                 >
-                  AI Reasoning
+                  <span>AI Reasoning</span>
                   {expanded ? (
-                    <ChevronUp className="w-4 h-4" />
+                    <ChevronUp className="w-3.5 h-3.5" />
                   ) : (
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-3.5 h-3.5" />
                   )}
                 </button>
                 <AnimatePresence>
@@ -260,9 +366,17 @@ export default function SignalPanel({ result, symbol, timeframe }: Props) {
                       exit={{ height: 0 }}
                       className="overflow-hidden"
                     >
-                      <p className="text-xs text-muted-foreground p-3 pt-0 leading-relaxed">
+                      <p className="text-xs text-muted-foreground p-2.5 pt-0 leading-relaxed">
                         {result.reasoning}
                       </p>
+                      {result.indicatorConsensus && (
+                        <p className="text-xs text-muted-foreground px-2.5 pb-2.5 leading-relaxed border-t border-border pt-2">
+                          <span className="text-foreground font-medium">
+                            Indicators:{" "}
+                          </span>
+                          {result.indicatorConsensus}
+                        </p>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -274,10 +388,10 @@ export default function SignalPanel({ result, symbol, timeframe }: Props) {
                 onClick={handleSave}
                 disabled={isSaving}
                 variant="outline"
-                className="w-full"
-                style={{ borderColor: "oklch(0.22 0.02 265)" }}
+                className="w-full text-xs"
+                style={{ borderColor: "oklch(0.22 0.02 265)", height: "32px" }}
               >
-                <Save className="w-4 h-4 mr-2" />
+                <Save className="w-3.5 h-3.5 mr-1.5" />
                 {isSaving ? "Saving..." : "Save Signal"}
               </Button>
             </motion.div>

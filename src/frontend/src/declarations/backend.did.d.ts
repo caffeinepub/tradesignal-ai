@@ -19,6 +19,7 @@ export interface TransformationOutput {
   'body' : Uint8Array,
   'headers' : Array<http_header>,
 }
+export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
@@ -30,14 +31,22 @@ export interface http_request_result {
 }
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
-  'analyzeChart' : ActorMethod<[string, string, string, string], string>,
+  'analyzeChart' : ActorMethod<
+    [string, string, string, string, string],
+    string
+  >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'chatWithAI' : ActorMethod<[string, string], string>,
+  'chatWithAI' : ActorMethod<[string, string, string], string>,
   'getApiKey' : ActorMethod<[], string>,
+  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getProviderApiKey' : ActorMethod<[string], string>,
   'getSignalHistory' : ActorMethod<[], Array<string>>,
+  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveApiKey' : ActorMethod<[string], undefined>,
+  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'saveProviderApiKey' : ActorMethod<[string, string], undefined>,
   'saveSignal' : ActorMethod<[string], undefined>,
   /**
    * / Callback function for HTTP transformation required by IC
