@@ -256,7 +256,7 @@ export default function IndicatorsPanel({ symbol, timeframe }: Props) {
         </div>
 
         <AnimatePresence>
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2">
             {rows.map((row, i) => {
               const s = SIGNAL_STYLES[row.signal];
               return (

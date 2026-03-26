@@ -31,26 +31,26 @@ export default function Navbar({ selectedModel, onSettings }: Props) {
     : "";
 
   return (
-    <header className="h-14 flex items-center gap-4 px-4 border-b border-border bg-card shrink-0">
+    <header className="h-12 flex items-center gap-2 px-3 border-b border-border bg-card shrink-0">
       {/* Logo */}
-      <div className="flex items-center gap-2 mr-2">
+      <div className="flex items-center gap-2 mr-1">
         <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center"
+          className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
           style={{
             background: "oklch(0.72 0.17 175 / 0.15)",
             border: "1px solid oklch(0.72 0.17 175 / 0.4)",
           }}
         >
-          <TrendingUp className="w-4 h-4 trade-green" />
+          <TrendingUp className="w-3.5 h-3.5 trade-green" />
         </div>
-        <span className="font-bold text-sm tracking-tight">
+        <span className="font-bold text-sm tracking-tight whitespace-nowrap">
           Trade<span className="trade-green">Signal</span> AI
         </span>
       </div>
 
-      {/* Active AI model badge */}
+      {/* Active AI model badge - hidden on mobile */}
       <div
-        className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium"
+        className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium"
         data-ocid="navbar.active_model.badge"
         style={{
           background: `${selectedModel.color.replace(")", " / 0.12)")}`,
@@ -69,7 +69,7 @@ export default function Navbar({ selectedModel, onSettings }: Props) {
         </span>
       </div>
 
-      <div className="flex items-center gap-2 ml-auto">
+      <div className="flex items-center gap-1 ml-auto">
         <Badge variant="outline" className="text-xs font-mono hidden md:flex">
           {shortPrincipal}
         </Badge>
